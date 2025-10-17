@@ -1,33 +1,65 @@
 name: Deploy Hotel Booking Pipeline
 
+# Trigger workflow on push to main or dev branch
 on:
   push:
     branches:
-      - main  # deploy all envs from main branch
+      - main
+      - dev
 
 jobs:
   deploy-dev:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - run: pip install databricks-cli dab
-      - run: databricks configure --token <<< "$DATABRICKS_HOST\n$DATABRICKS_TOKEN"
-      - run: dab deploy --file databricks.yml --job bronze_dev --job silver_dev --job gold_dev
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Databricks CLI & DAB
+        run: |
+          pip install databricks-cli dab
+
+      - name: Configure Databricks CLI
+        run: |
+          printf "%s\n%s\n" "$DATABRICKS_HOST" "$DATABRICKS_TOKEN" | databricks configure --token
+
+      - name: Deploy Dev Jobs
+        run: |
+          dab deploy --file databricks.yml --job bronze_dev --job silver_dev --job gold_dev
 
   deploy-stage:
     runs-on: ubuntu-latest
     needs: deploy-dev
     steps:
-      - uses: actions/checkout@v3
-      - run: pip install databricks-cli dab
-      - run: databricks configure --token <<< "$DATABRICKS_HOST\n$DATABRICKS_TOKEN"
-      - run: dab deploy --file databricks.yml --job bronze_stage --job silver_stage --job gold_stage
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Databricks CLI & DAB
+        run: |
+          pip install databricks-cli dab
+
+      - name: Configure Databricks CLI
+        run: |
+          printf "%s\n%s\n" "$DATABRICKS_HOST" "$DATABRICKS_TOKEN" | databricks configure --token
+
+      - name: Deploy Stage Jobs
+        run: |
+          dab deploy --file databricks.yml --job bronze_stage --job silver_stage --job gold_stage
 
   deploy-prod:
     runs-on: ubuntu-latest
     needs: deploy-stage
     steps:
-      - uses: actions/checkout@v3
-      - run: pip install databricks-cli dab
-      - run: databricks configure --token <<< "$DATABRICKS_HOST\n$DATABRICKS_TOKEN"
-      - run: dab deploy --file databricks.yml --job bronze_prod --job silver_prod --job gold_prod
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Databricks CLI & DAB
+        run: |
+          pip install databricks-cli dab
+
+      - name: Configure Databricks CLI
+        run: |
+          printf "%s\n%s\n" "$DATABRICKS_HOST" "$DATABRICKS_TOKEN" | databricks configure --token
+
+      - name: Deploy Prod Jobs
+        run: |
+          dab deploy --file databricks.yml --job bronze_prod --job silver_prod --job gold_prod
